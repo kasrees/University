@@ -21,7 +21,6 @@ namespace University
             Console.WriteLine("add-student-to-group - add student to student group");
             Console.WriteLine("show-students - show all students");
             Console.WriteLine("show-groups - show all group");
-            Console.WriteLine("show-student-groups-dev - show table dbo.StudentGroup");
             Console.WriteLine("show-student-groups - show relationship group and stdent");
             Console.WriteLine("show-students-by-group-id - show all student in student group by student group id");
             Console.WriteLine("show-report - output a report with student amount in student groups\n");
@@ -49,9 +48,6 @@ namespace University
                     case "show-groups":
                         ShowGroups();
                         break;
-                    case "show-student-groups-dev":
-                        ShowStudentGroupsDev();
-                        break;
                     case "show-student-groups":
                         ShowStudentGroup();
                         break;
@@ -76,6 +72,18 @@ namespace University
             Console.WriteLine("Enter last name:");
             string lastName = Console.ReadLine();
 
+            if ( String.IsNullOrWhiteSpace( firstName ) )
+            {
+                Console.WriteLine("First name can't be empty or consist only of white-space characters");
+                return;
+            }
+
+            if ( String.IsNullOrWhiteSpace( lastName ) )
+            {
+                Console.WriteLine( "Last name can't be empty or consist only of white-space characters" );
+                return;
+            }
+
             studentRepository.Add(new Student
             {
                 FirstName = firstName,
@@ -89,6 +97,12 @@ namespace University
         {
             Console.WriteLine("Enter name:");
             string name = Console.ReadLine();
+
+            if ( String.IsNullOrWhiteSpace( name ) )
+            {
+                Console.WriteLine( "Name can't be empty or consist only of white-space characters" );
+                return;
+            }
 
             groupRepository.Add(new Group
             {
@@ -130,6 +144,15 @@ namespace University
             }
 
 
+            IEnumerable<StudentGroup> studentGroups = studentGroupRepository.GetAllByGroup( groupId );
+
+            if( studentGroups.Where(a => a.StudentId == studentId).Any() )
+            {
+                Console.WriteLine("Student already in this group.");
+                return;
+            }
+
+
             studentGroupRepository.Add(new StudentGroup
             {
                 GroupId = groupId,
@@ -141,7 +164,15 @@ namespace University
 
         private static void ShowStudents()
         {
-            foreach (Student student in studentRepository.GetAll())
+            IEnumerable<Student> students = studentRepository.GetAll();
+
+            if (!students.Any())
+            {
+                Console.WriteLine("No student's records!");
+                return;
+            }
+
+            foreach (Student student in students )
             {
                 Console.WriteLine($"Id: {student.Id}, First name: {student.FirstName}, Last name: {student.LastName}");
             }
@@ -151,7 +182,15 @@ namespace University
 
         private static void ShowGroups()
         {
-            foreach (Group group in groupRepository.GetAll())
+            IEnumerable<Group> groups = groupRepository.GetAll();
+
+            if ( !groups.Any() )
+            {
+                Console.WriteLine("No group's records!");
+                return;
+            }
+
+            foreach (Group group in groups )
             {
                 Console.WriteLine($"Id: {group.Id}, Name: {group.Name}");
             }
@@ -159,19 +198,17 @@ namespace University
             Console.WriteLine("Success");
         }
 
-        private static void ShowStudentGroupsDev()
-        {
-            foreach (StudentGroup studentGroup in studentGroupRepository.GetAll())
-            {
-                Console.WriteLine($"Id: {studentGroup.Id}, GroupId: {studentGroup.GroupId}, StudentId: {studentGroup.StudentId}");
-            }
-
-            Console.WriteLine("Success");
-        }
-
         private static void ShowStudentGroup()
         {
-            foreach (StudentGroup studentGroup in studentGroupRepository.GetAll())
+            IEnumerable<StudentGroup> studentGroups = studentGroupRepository.GetAll();
+
+            if ( !studentGroups.Any() )
+            {
+                Console.WriteLine("No student group's records!");
+                return;
+            }
+
+            foreach ( StudentGroup studentGroup in studentGroups )
             {
                 Console.WriteLine($"Id: {studentGroup.Id}, Group: {groupRepository.Get(studentGroup.GroupId).Name}, Student: {studentRepository.Get(studentGroup.StudentId).GetFullName()}");
             }
@@ -202,7 +239,15 @@ namespace University
                 return;
             }
 
-            foreach (StudentGroup studentGroup in studentGroupRepository.GetAllByGroup(groupId))
+            IEnumerable<StudentGroup> studentGroups = studentGroupRepository.GetAllByGroup( groupId );
+
+            if ( !studentGroups.Any() )
+            {
+                Console.WriteLine("No student group's records!");
+                return;
+            }
+
+            foreach (StudentGroup studentGroup in studentGroups )
             {
                 Console.WriteLine($"Id: {studentGroup.Id}, Group: {group.Name}, Student: {studentRepository.Get(studentGroup.StudentId).GetFullName()}");
             }
@@ -212,7 +257,15 @@ namespace University
 
         private static void ShowReport()
         {
-            foreach (Group group in groupRepository.GetAll())
+            IEnumerable<Group> groups = groupRepository.GetAll();
+
+            if ( !groups.Any() )
+            {
+                Console.WriteLine("No group's records!");
+                return;
+            }
+
+            foreach ( Group group in groups )
             {
                 Console.WriteLine($"Group: {group.Name}, Student amount: {studentGroupRepository.GetAllByGroup(group.Id).Count()}");
             }
